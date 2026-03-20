@@ -1,11 +1,12 @@
 import { Leaf, Instagram, Facebook, Mail } from "lucide-react";
 
 const links = [
-  { label: "Home", href: "#hero" },
-  { label: "Rooms", href: "#rooms" },
-  { label: "Packages", href: "#packages" },
-  { label: "Activities", href: "#activities" },
-  { label: "Contact", href: "#booking" },
+  { label: "Home", href: "/" },
+  { label: "Rooms", href: "/#rooms" },
+  { label: "Packages", href: "/#packages" },
+  { label: "Activities", href: "/#activities" },
+  { label: "Gallery", href: "/gallery" },
+  { label: "Contact", href: "/#booking" },
 ];
 
 const Footer = () => {
