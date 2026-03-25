@@ -19,7 +19,7 @@ const LocationSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 rounded-2xl overflow-hidden shadow-elevated h-80 lg:h-auto">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3879.0!2d75.78!3d13.32!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTPCsDE5JzEyLjAiTiA3NcKwNDYnNDguMCJF!5e0!3m2!1sen!2sin!4v1"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d807!2d75.731731!3d13.3433277!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bbad86b5344f8ff%3A0x9bffcab9ffce611f!2sMalnadEcoStay!5e0!3m2!1sen!2sin!4v1"
               width="100%"
               height="100%"
               style={{ border: 0, minHeight: 320 }}
@@ -56,7 +56,7 @@ const LocationSection = () => {
               </div>
             </div>
             <a
-              href="https://maps.app.goo.gl/SQXPDtpSMk3eYm797"
+              href="https://maps.app.goo.gl/1nZ8hnVdorxR97GS9"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-forest text-primary-foreground px-6 py-3 rounded-lg font-semibold text-sm text-center hover:bg-forest-light transition-colors mt-2"
