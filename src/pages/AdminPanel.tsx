@@ -465,14 +465,13 @@ const AdminPanel = () => {
               {gallery.map((image, index) => (
                 <div key={index} className="relative group">
                   {(() => {
-                    const isCloudinary = image.includes('/')  || !image.includes('.');
-                    const imgSrc = isCloudinary
-                      ? cld.image(image).format('auto').quality('auto').resize(auto().gravity(autoGravity()).width(300).height(200))
-                      : null;
-                    return isCloudinary && imgSrc
-                      ? <AdvancedImage cldImg={imgSrc} className="w-full h-32 object-cover rounded-lg" />
-                      : <img src={localStorage.getItem(`malnad_img_${image}`) || `/gallery/${image}`} alt={`Gallery ${index + 1}`} className="w-full h-32 object-cover rounded-lg"
-                          onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDIwMCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTI4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA0OEw5MyA1NEw5OSA0OEwxMDUgNTRMMTEzIDQ2VjgySDg3VjQ4WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K'; }} />
+                    const isCloudinary = image.includes('/') || !image.includes('.');
+                    if (isCloudinary) {
+                      const imgSrc = cld.image(image).format('auto').quality('auto').resize(auto().gravity(autoGravity()).width(300).height(200));
+                      return <AdvancedImage cldImg={imgSrc} style={{ width: '100%', height: '128px', objectFit: 'cover', borderRadius: '8px' }} />;
+                    }
+                    return <img src={`/gallery/${image}`} alt={`Gallery ${index + 1}`} className="w-full h-32 object-cover rounded-lg"
+                      onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDIwMCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTI4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA0OEw5MyA1NEw5OSA0OEwxMDUgNTRMMTEzIDQ2VjgySDg3VjQ4WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K'; }} />;
                   })()}
                   <Button size="sm" variant="destructive" className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => deleteImage(image)}>
                     <Trash2 className="h-3 w-3" />
