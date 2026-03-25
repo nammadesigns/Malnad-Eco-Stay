@@ -20,6 +20,7 @@ const AdminPanel = () => {
   const [message, setMessage] = useState<{ text: string; type: string } | ''>('');
   const [loading, setLoading] = useState(false);
   const [newImageName, setNewImageName] = useState('');
+  const [dragOver, setDragOver] = useState(false);
   const [showAddBooking, setShowAddBooking] = useState(false);
   const [newBooking, setNewBooking] = useState(EMPTY_BOOKING);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -93,6 +94,33 @@ const AdminPanel = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setLoading(true);
+    let added = 0;
+    let currentGallery = [...gallery];
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) continue;
+      const reader = new FileReader();
+      await new Promise<void>(resolve => {
+        reader.onload = () => {
+          const key = `malnad_img_${file.name}`;
+          localStorage.setItem(key, reader.result as string);
+          if (!currentGallery.includes(file.name)) {
+            currentGallery = [...currentGallery, file.name];
+          }
+          resolve();
+        };
+        reader.readAsDataURL(file);
+      });
+      added++;
+    }
+    localStorage.setItem('malnad_gallery', JSON.stringify(currentGallery));
+    setGallery(currentGallery);
+    setLoading(false);
+    showMessage(`${added} image(s) uploaded successfully`);
   };
 
   const deleteImage = async (imageName: string) => {
@@ -412,19 +440,24 @@ const AdminPanel = () => {
         <Card>
           <CardHeader><CardTitle>Gallery Management ({gallery.length} images)</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Label htmlFor="imageName">Add New Image (enter filename)</Label>
-                <Input id="imageName" placeholder="e.g., new-image.jpg" value={newImageName} onChange={(e) => setNewImageName(e.target.value)} />
-              </div>
-              <div className="flex items-end">
-                <Button onClick={addImage} disabled={loading}><Plus className="h-4 w-4 mr-2" />Add Image</Button>
-              </div>
+            {/* Drag & Drop Upload */}
+            <div
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${
+                dragOver ? 'border-forest bg-forest/5' : 'border-gray-300 hover:border-forest/50'
+              }`}
+              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={e => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
+              onClick={() => document.getElementById('fileInput')?.click()}
+            >
+              <input id="fileInput" type="file" accept="image/*" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
+              <p className="text-muted-foreground text-sm">{loading ? 'Uploading...' : 'Drag & drop images here or click to choose files'}</p>
+              <p className="text-xs text-muted-foreground mt-1">Supports JPG, PNG, WEBP</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {gallery.map((image, index) => (
                 <div key={index} className="relative group">
-                  <img src={`/gallery/${image}`} alt={`Gallery ${index + 1}`} className="w-full h-32 object-cover rounded-lg"
+                  <img src={localStorage.getItem(`malnad_img_${image}`) || `/gallery/${image}`} alt={`Gallery ${index + 1}`} className="w-full h-32 object-cover rounded-lg"
                     onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDIwMCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTI4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA0OEw5MyA1NEw5OSA0OEwxMDUgNTRMMTEzIDQ2VjgySDg3VjQ4WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K'; }} />
                   <Button size="sm" variant="destructive" className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => deleteImage(image)}>
                     <Trash2 className="h-3 w-3" />
