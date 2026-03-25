@@ -2,8 +2,23 @@
 const STORAGE_KEYS = {
   PRICING: 'malnad_pricing',
   GALLERY: 'malnad_gallery',
-  ADMIN_TOKEN: 'malnad_admin_token'
+  ADMIN_TOKEN: 'malnad_admin_token',
+  BOOKINGS: 'malnad_bookings'
 };
+
+export interface Booking {
+  id: string;
+  name: string;
+  members: number;
+  package: string;
+  date: string;
+  total: number;
+  advance: number;
+  balance: number;
+  paid: boolean;
+  status: 'confirmed' | 'rejected' | 'pending';
+  createdAt: string;
+}
 
 // Default data
 const DEFAULT_PRICING = {
@@ -193,23 +208,38 @@ export const localApiService = {
           reject(new Error('Not authenticated'));
           return;
         }
-        
         try {
           const pricing = await this.getPricing();
           const gallery = await this.getGallery();
-          resolve({
-            pricing,
-            gallery,
-            stats: {
-              totalImages: gallery.length,
-              lastUpdated: new Date().toISOString()
-            }
-          });
+          resolve({ pricing, gallery });
         } catch (error) {
           reject(new Error('Failed to fetch dashboard data'));
         }
       }, 300);
     });
+  },
+
+  getBookings(): Booking[] {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.BOOKINGS) || '[]');
+    } catch { return []; }
+  },
+
+  addBooking(booking: Omit<Booking, 'id' | 'createdAt'>): Booking {
+    const bookings = this.getBookings();
+    const newBooking: Booking = { ...booking, id: Date.now().toString(), createdAt: new Date().toISOString() };
+    localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify([...bookings, newBooking]));
+    return newBooking;
+  },
+
+  updateBookingStatus(id: string, status: Booking['status']): void {
+    const bookings = this.getBookings().map(b => b.id === id ? { ...b, status } : b);
+    localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(bookings));
+  },
+
+  deleteBooking(id: string): void {
+    const bookings = this.getBookings().filter(b => b.id !== id);
+    localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(bookings));
   }
 };
 
