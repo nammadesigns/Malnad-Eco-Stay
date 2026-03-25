@@ -1,37 +1,59 @@
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Heart, Users, Home } from "lucide-react";
 import couplesImg from "@/assets/couples-room.jpg";
 import dormitoryImg from "@/assets/dormitory.jpg";
 import familyImg from "@/assets/family-room.jpg";
-
-const rooms = [
-  {
-    title: "Couples Rooms",
-    desc: "3 cozy rooms designed for a romantic getaway with nature views",
-    detail: "3 Rooms Available",
-    icon: Heart,
-    image: couplesImg,
-  },
-  {
-    title: "Dormitory",
-    desc: "Perfect for groups and backpackers, shared space with all amenities",
-    detail: "Capacity: 9 People",
-    icon: Users,
-    image: dormitoryImg,
-  },
-  {
-    title: "Family Room",
-    desc: "Spacious room ideal for families wanting comfort and togetherness",
-    detail: "1 Room Available",
-    icon: Home,
-    image: familyImg,
-  },
-];
+import { localApiService } from "@/services/localApi";
 
 const AccommodationSection = () => {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
+  const [pricing, setPricing] = useState({
+    rooms: { dormitory: 800, couples: 1500, family: 2500 }
+  });
+
+  useEffect(() => {
+    fetchPricing();
+  }, []);
+
+  const fetchPricing = async () => {
+    try {
+      const data = await localApiService.getPricing();
+      if (data) {
+        setPricing(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch pricing:', error);
+    }
+  };
+
+  const rooms = [
+    {
+      title: "Couples Rooms",
+      desc: "3 cozy rooms designed for a romantic getaway with nature views",
+      detail: "3 Rooms Available",
+      price: pricing.rooms.couples,
+      icon: Heart,
+      image: couplesImg,
+    },
+    {
+      title: "Dormitory",
+      desc: "Perfect for groups and backpackers, shared space with all amenities",
+      detail: "Capacity: 9 People",
+      price: pricing.rooms.dormitory,
+      icon: Users,
+      image: dormitoryImg,
+    },
+    {
+      title: "Family Room",
+      desc: "Spacious room ideal for families wanting comfort and togetherness",
+      detail: "1 Room Available",
+      price: pricing.rooms.family,
+      icon: Home,
+      image: familyImg,
+    },
+  ];
 
   return (
     <section id="rooms" className="section-padding bg-cream">
@@ -75,7 +97,11 @@ const AccommodationSection = () => {
                   </div>
                   <h3 className="font-display text-xl font-semibold text-foreground">{room.title}</h3>
                 </div>
-                <p className="text-muted-foreground text-sm">{room.desc}</p>
+                <p className="text-muted-foreground text-sm mb-4">{room.desc}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl font-bold text-forest">₹{room.price}</span>
+                  <span className="text-sm text-muted-foreground">per night</span>
+                </div>
               </div>
             </motion.div>
           ))}

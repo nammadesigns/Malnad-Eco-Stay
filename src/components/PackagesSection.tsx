@@ -1,6 +1,7 @@
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Star, Check } from "lucide-react";
+import { localApiService } from "@/services/localApi";
 
 interface PackageItem {
   name: string;
@@ -8,20 +9,6 @@ interface PackageItem {
   features: string[];
   best?: boolean;
 }
-
-const dormPackages: PackageItem[] = [
-  { name: "Stay Only", price: "₹999", features: ["Dormitory bed", "WiFi access", "Common area"] },
-  { name: "Stay + Breakfast", price: "₹1,399", features: ["Dormitory bed", "Daily breakfast", "WiFi access"] },
-  { name: "Stay + Breakfast + Dinner", price: "₹1,699", features: ["Dormitory bed", "Breakfast", "Dinner", "WiFi"], best: true },
-  { name: "Stay + All Meals", price: "₹1,999", features: ["Dormitory bed", "Breakfast, Lunch & Dinner", "WiFi"] },
-];
-
-const roomPackages: PackageItem[] = [
-  { name: "Stay Only", price: "₹1,299", features: ["Private room", "WiFi access", "Nature view"] },
-  { name: "Stay + Breakfast", price: "₹1,499", features: ["Private room", "Daily breakfast", "WiFi access"] },
-  { name: "Stay + Breakfast + Dinner", price: "₹1,799", features: ["Private room", "Breakfast", "Dinner", "WiFi"], best: true },
-  { name: "Stay + All Meals", price: "₹2,199", features: ["Private room", "All meals included", "WiFi"] },
-];
 
 const PackageCard = ({ pkg, delay }: { pkg: PackageItem; delay: number }) => (
   <motion.div
@@ -69,6 +56,43 @@ const PackageCard = ({ pkg, delay }: { pkg: PackageItem; delay: number }) => (
 const PackagesSection = () => {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
+  const [pricing, setPricing] = useState({
+    packages: { adventure: 2500, romantic: 3500, family: 4500 }
+  });
+
+  useEffect(() => {
+    fetchPricing();
+  }, []);
+
+  const fetchPricing = async () => {
+    try {
+      const data = await localApiService.getPricing();
+      if (data) {
+        setPricing(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch pricing:', error);
+    }
+  };
+
+  const packages: PackageItem[] = [
+    {
+      name: "Adventure Package",
+      price: `₹${pricing.packages.adventure}`,
+      features: ["2 Days / 1 Night", "Trekking & Activities", "All Meals", "Guide Included"],
+    },
+    {
+      name: "Romantic Package",
+      price: `₹${pricing.packages.romantic}`,
+      features: ["2 Days / 1 Night", "Couples Room", "Candlelight Dinner", "Nature Walks"],
+      best: true,
+    },
+    {
+      name: "Family Package",
+      price: `₹${pricing.packages.family}`,
+      features: ["3 Days / 2 Nights", "Family Room", "All Meals", "Kids Activities"],
+    },
+  ];
 
   return (
     <section id="packages" className="section-padding bg-background">
@@ -83,19 +107,9 @@ const PackagesSection = () => {
           <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mt-3">Stay Packages</h2>
         </motion.div>
 
-        {/* Dormitory */}
-        <h3 className="font-display text-2xl font-semibold text-foreground mb-6 text-center">Dormitory Packages</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
-          {dormPackages.map((pkg, i) => (
-            <PackageCard key={pkg.name + "dorm"} pkg={pkg} delay={i * 0.1} />
-          ))}
-        </div>
-
-        {/* Room */}
-        <h3 className="font-display text-2xl font-semibold text-foreground mb-6 text-center">Room Packages</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {roomPackages.map((pkg, i) => (
-            <PackageCard key={pkg.name + "room"} pkg={pkg} delay={i * 0.1} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {packages.map((pkg, i) => (
+            <PackageCard key={pkg.name} pkg={pkg} delay={i * 0.1} />
           ))}
         </div>
       </div>
