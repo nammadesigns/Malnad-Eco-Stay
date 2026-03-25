@@ -10,6 +10,11 @@ interface PackageItem {
   best?: boolean;
 }
 
+const getWhatsAppLink = (pkg: PackageItem) => {
+  const message = `Hi, I'm interested in the *${pkg.name}* at Malnad Eco Stay!\n\n*Package Details:*\n• Price: ${pkg.price} / person / day\n• ${pkg.features.join('\n• ')}\n\nPlease share availability and booking details.`;
+  return `https://wa.me/918861425285?text=${encodeURIComponent(message)}`;
+};
+
 const PackageCard = ({ pkg, delay }: { pkg: PackageItem; delay: number }) => (
   <motion.div
     initial={{ opacity: 0, y: 30 }}
@@ -41,7 +46,9 @@ const PackageCard = ({ pkg, delay }: { pkg: PackageItem; delay: number }) => (
       ))}
     </ul>
     <a
-      href="#booking"
+      href={getWhatsAppLink(pkg)}
+      target="_blank"
+      rel="noopener noreferrer"
       className={`block mt-6 text-center py-2.5 rounded-lg text-sm font-semibold transition-colors ${
         pkg.best
           ? "bg-gold text-foreground hover:bg-gold/90"
