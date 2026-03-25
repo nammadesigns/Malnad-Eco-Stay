@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Trash2, LogOut, Save, Plus } from 'lucide-react';
+import { Trash2, LogOut, Save, Plus, Home } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { localApiService } from '@/services/localApi';
 
 const AdminPanel = () => {
@@ -18,6 +19,7 @@ const AdminPanel = () => {
   const [message, setMessage] = useState<{text: string, type: string} | ''>('');
   const [loading, setLoading] = useState(false);
   const [newImageName, setNewImageName] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (localApiService.isAdminLoggedIn()) {
@@ -151,10 +153,16 @@ const AdminPanel = () => {
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Admin Panel</h1>
-          <Button onClick={logout} variant="outline">
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate('/')} variant="outline">
+              <Home className="h-4 w-4 mr-2" />
+              Homepage
+            </Button>
+            <Button onClick={logout} variant="outline">
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
 
         {message && (
