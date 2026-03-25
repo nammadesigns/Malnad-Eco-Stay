@@ -168,7 +168,7 @@ export const localApiService = {
         }
         
         try {
-          const gallery = this.getGallery();
+          const gallery = JSON.parse(localStorage.getItem(STORAGE_KEYS.GALLERY) || '[]');
           const updatedGallery = [...gallery, imageName];
           localStorage.setItem(STORAGE_KEYS.GALLERY, JSON.stringify(updatedGallery));
           resolve({ message: 'Image added successfully', gallery: updatedGallery });
