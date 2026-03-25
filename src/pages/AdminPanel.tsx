@@ -8,6 +8,12 @@ import { Trash2, LogOut, Save, Plus, Home, Check, X, CalendarDays, Users, Indian
 import { localApiService, Booking } from '@/services/localApi';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { Cloudinary } from '@cloudinary/url-gen';
+import { auto } from '@cloudinary/url-gen/actions/resize';
+import { autoGravity } from '@cloudinary/url-gen/qualifiers/gravity';
+import { AdvancedImage } from '@cloudinary/react';
+
+const cld = new Cloudinary({ cloud: { cloudName: 'dkusa47qe' } });
 
 const EMPTY_BOOKING = { name: '', members: 1, package: '', date: '', total: 0, advance: 0, balance: 0, paid: false, status: 'pending' as const };
 
@@ -21,6 +27,7 @@ const AdminPanel = () => {
   const [loading, setLoading] = useState(false);
   const [newImageName, setNewImageName] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [showAddBooking, setShowAddBooking] = useState(false);
   const [newBooking, setNewBooking] = useState(EMPTY_BOOKING);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -98,28 +105,28 @@ const AdminPanel = () => {
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    setLoading(true);
+    setUploading(true);
     let added = 0;
     let currentGallery = [...gallery];
     for (const file of Array.from(files)) {
       if (!file.type.startsWith('image/')) continue;
-      const reader = new FileReader();
-      await new Promise<void>(resolve => {
-        reader.onload = () => {
-          const key = `malnad_img_${file.name}`;
-          localStorage.setItem(key, reader.result as string);
-          if (!currentGallery.includes(file.name)) {
-            currentGallery = [...currentGallery, file.name];
-          }
-          resolve();
-        };
-        reader.readAsDataURL(file);
-      });
-      added++;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'malnad_gallery');
+      try {
+        const res = await fetch('https://api.cloudinary.com/v1_1/dkusa47qe/image/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.public_id) {
+          currentGallery = [...currentGallery, data.public_id];
+          added++;
+        }
+      } catch (e) {
+        console.error('Upload failed for', file.name);
+      }
     }
     localStorage.setItem('malnad_gallery', JSON.stringify(currentGallery));
     setGallery(currentGallery);
-    setLoading(false);
+    setUploading(false);
     showMessage(`${added} image(s) uploaded successfully`);
   };
 
@@ -451,14 +458,22 @@ const AdminPanel = () => {
               onClick={() => document.getElementById('fileInput')?.click()}
             >
               <input id="fileInput" type="file" accept="image/*" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
-              <p className="text-muted-foreground text-sm">{loading ? 'Uploading...' : 'Drag & drop images here or click to choose files'}</p>
+              <p className="text-muted-foreground text-sm">{uploading ? 'Uploading to Cloudinary...' : 'Drag & drop images here or click to choose files'}</p>
               <p className="text-xs text-muted-foreground mt-1">Supports JPG, PNG, WEBP</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {gallery.map((image, index) => (
                 <div key={index} className="relative group">
-                  <img src={localStorage.getItem(`malnad_img_${image}`) || `/gallery/${image}`} alt={`Gallery ${index + 1}`} className="w-full h-32 object-cover rounded-lg"
-                    onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDIwMCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTI4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA0OEw5MyA1NEw5OSA0OEwxMDUgNTRMMTEzIDQ2VjgySDg3VjQ4WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K'; }} />
+                  {(() => {
+                    const isCloudinary = image.includes('/')  || !image.includes('.');
+                    const imgSrc = isCloudinary
+                      ? cld.image(image).format('auto').quality('auto').resize(auto().gravity(autoGravity()).width(300).height(200))
+                      : null;
+                    return isCloudinary && imgSrc
+                      ? <AdvancedImage cldImg={imgSrc} className="w-full h-32 object-cover rounded-lg" />
+                      : <img src={localStorage.getItem(`malnad_img_${image}`) || `/gallery/${image}`} alt={`Gallery ${index + 1}`} className="w-full h-32 object-cover rounded-lg"
+                          onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDIwMCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTI4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA0OEw5MyA1NEw5OSA0OEwxMDUgNTRMMTEzIDQ2VjgySDg3VjQ4WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K'; }} />
+                  })()}
                   <Button size="sm" variant="destructive" className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => deleteImage(image)}>
                     <Trash2 className="h-3 w-3" />
                   </Button>
